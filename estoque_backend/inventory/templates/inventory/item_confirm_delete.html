@@ -1,0 +1,17 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}Excluir Item{% endblock %}
+
+{% block content %}
+<h1>Excluir Item</h1>
+<p>Você tem certeza que deseja excluir o item "{{ item.descricao }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Confirmar Exclusão
+    </button>
+    <a href="{% url 'item_list' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Cancelar
+    </a>
+</form>
+{% endblock %}
