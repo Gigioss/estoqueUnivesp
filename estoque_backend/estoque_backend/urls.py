@@ -1,6 +1,3 @@
-from django.urls import path, include
-from django.views.generic import RedirectView
-
 """
 URL configuration for estoque_backend project.
 
@@ -22,6 +19,5 @@ from django.urls import path, include  # Verifique se 'include' está importado
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # URL para o painel de administração do Django
-    path('inventory/', include('inventory.urls')),  # Inclui as URLs do aplicativo inventory
-    path('', RedirectView.as_view(url='/inventory/')),  # Redireciona a raiz para /inventory/
+    path('', include('inventory.urls')),  # Inclui as URLs do aplicativo inventory
 ]

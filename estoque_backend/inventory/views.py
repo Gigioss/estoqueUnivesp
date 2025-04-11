@@ -80,31 +80,61 @@ def manutencao_add(request):
 @transaction.atomic
 def manutencao_edit(request, pk):
     manutencao = get_object_or_404(Manutencao, pk=pk)
+    
     if request.method == 'POST':
         form = ManutencaoForm(request.POST, instance=manutencao)
         formset = ItemManutencaoFormSet(request.POST, instance=manutencao)
-
+        
         if form.is_valid() and formset.is_valid():
+            # Primeiro salva a manutenção
             manutencao = form.save()
-            for item_form in formset:
-                if item_form.cleaned_data.get('item') and item_form.cleaned_data.get('quantidade_utilizada'):
-                    item = item_form.cleaned_data['item']
-                    quantidade_utilizada = item_form.cleaned_data['quantidade_utilizada']
-
-                    if item.quantidade >= quantidade_utilizada:
-                        item.quantidade -= quantidade_utilizada
-                        item.save()
-                    else:
-                        form.add_error(None, f"Não há estoque suficiente para o item {item.descricao}.")
-                        return render(request, 'inventory/manutencao_form.html', {'form': form, 'formset': formset})
-
-            formset.save()
-            return redirect('manutencao_list')
+            
+            # Dicionário para armazenar as quantidades originais
+            quantidades_originais = {
+                item.item.pk: item.quantidade_utilizada 
+                for item in manutencao.itens_utilizados.all()
+            }
+            
+            try:
+                # Processa cada item do formset
+                for item_form in formset:
+                    if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
+                        item = item_form.cleaned_data.get('item')
+                        nova_quantidade = item_form.cleaned_data.get('quantidade_utilizada')
+                        
+                        if item and nova_quantidade:
+                            # Calcula a diferença em relação à quantidade original
+                            quantidade_original = quantidades_originais.get(item.pk, 0)
+                            diferenca = nova_quantidade - quantidade_original
+                            
+                            # Verifica estoque
+                            if item.quantidade >= diferenca:
+                                item.quantidade -= diferenca
+                                item.save()
+                            else:
+                                form.add_error(None, f"Não há estoque suficiente para o item {item.descricao}")
+                                return render(request, 'inventory/manutencao_form.html', {
+                                    'form': form,
+                                    'formset': formset
+                                })
+                
+                # Salva o formset após todas as validações
+                formset.save()
+                return redirect('manutencao_list')
+                
+            except Exception as e:
+                # Em caso de erro, faz rollback da transação
+                transaction.set_rollback(True)
+                form.add_error(None, f"Ocorreu um erro: {str(e)}")
+    
     else:
         form = ManutencaoForm(instance=manutencao)
         formset = ItemManutencaoFormSet(instance=manutencao)
-
-    return render(request, 'inventory/manutencao_form.html', {'form': form, 'formset': formset})
+    
+    return render(request, 'inventory/manutencao_form.html', {
+        'form': form,
+        'formset': formset
+    })
 
 @transaction.atomic
 def manutencao_delete(request, pk):
