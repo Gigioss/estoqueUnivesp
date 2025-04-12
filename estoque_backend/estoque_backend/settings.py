@@ -30,8 +30,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Configurações de arquivos estáticos
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'inventory/static')]  # Caminho para a pasta static
+# STATIC_URL = '/static/'
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'inventory/static')]  # Caminho para a pasta static
 
 
 # Application definition
