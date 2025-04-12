@@ -115,6 +115,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ALLOWED_HOSTS = [
+    'estoqueunivesp.onrender.com',  # Seu domínio no Render
+    'localhost',                    # Para desenvolvimento local
+    '127.0.0.1',                    # Para desenvolvimento local
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
