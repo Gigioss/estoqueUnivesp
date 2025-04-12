@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,8 +28,6 @@ SECRET_KEY = 'django-insecure-=cbs*4nmbzh!4uvvgrjxg&cibjeb%97zk^%5y6d)m!ub0(&g2&
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-import os
 
 # Configurações de arquivos estáticos
 STATIC_URL = '/static/'
@@ -83,17 +82,11 @@ WSGI_APPLICATION = 'estoque_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'estoque_db',  # Nome do banco de dados
-        'USER': 'root',         # Usuário do MySQL
-        'PASSWORD': 'root',  # Senha do MySQL
-        'HOST': 'localhost',
-        'PORT': '3306',         # Porta padrão do MySQL
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
