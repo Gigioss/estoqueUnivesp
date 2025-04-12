@@ -133,7 +133,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'estoque_backend/static'),  # Development files
     os.path.join(BASE_DIR, 'static'),                 # Additional directory if needed
 ]
 
