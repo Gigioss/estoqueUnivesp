@@ -184,4 +184,4 @@ def relatorios_view(request):
         'cliente_selecionado': cliente_selecionado,
         'dados_grafico': dados_grafico
     }
-    return render(request, 'relatorios.html', context)
+    return render(request, 'inventory/relatorios.html', context)
