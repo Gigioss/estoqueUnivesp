@@ -5,4 +5,5 @@ dj-database-url==2.1.0
 djangorestframework==3.14.0
 gunicorn>=20.0.0
 mysqlclient==2.2.1
-psycopg2-binary==2.9.9  # Para PostgreSQL
+psycopg2-binary==2.9.9
+sympy>=1.12
