@@ -155,33 +155,34 @@ def manutencao_delete(request, pk):
 
 @transaction.atomic
 def relatorios_view(request):
-    # Obtém todos os clientes distintos que têm manutenções
-    clientes = Manutencao.objects.values_list('nome_cliente', flat=True).distinct()
-    cliente_selecionado = None
-    dados_grafico = []
+    # Inicializa variáveis
+    itens_utilizados = ItemManutencao.objects.all().select_related('manutencao', 'item')
+    mensagem = None
 
     if request.method == 'POST':
-        cliente_nome = request.POST.get('cliente')
-        if cliente_nome:
-            cliente_selecionado = cliente_nome
-            # Agrupa os itens utilizados nas manutenções do cliente selecionado
-            itens_utilizados = ItemManutencao.objects.filter(
-                manutencao_nome_cliente=cliente_nome
-            ).values(
-                'item_descricao'
-            ).annotate(
-                total=Sum('quantidade_utilizada')
-            ).order_by('-total')
-            
-            dados_grafico = {
-                'labels': [item['item_descricao'] for item in itens_utilizados],
-                'data': [item['total'] for item in itens_utilizados]
-            }
-            dados_grafico = json.dumps(dados_grafico)
+        # Obter parâmetros do POST
+        nome_cliente = request.POST.get('nome_cliente', '').strip()
+        status = request.POST.get('status', '').strip()
 
+        # Aplicar filtros
+        if nome_cliente:
+            itens_utilizados = itens_utilizados.filter(
+                manutencao__nome_cliente__icontains=nome_cliente
+            )
+        
+        if status:
+            itens_utilizados = itens_utilizados.filter(
+                manutencao__status=status
+            )
+
+        if not nome_cliente and not status:
+            mensagem = "Nenhum filtro aplicado - mostrando todos os itens"
+
+    # Preparar contexto
     context = {
-        'clientes': clientes,
-        'cliente_selecionado': cliente_selecionado,
-        'dados_grafico': dados_grafico
+        'itens_utilizados': itens_utilizados,
+        'mensagem': mensagem,
+        'total_itens': itens_utilizados.count(),
     }
+
     return render(request, 'inventory/relatorios.html', context)
