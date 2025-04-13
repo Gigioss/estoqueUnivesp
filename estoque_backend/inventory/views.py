@@ -166,15 +166,15 @@ def relatorios_view(request):
             cliente_selecionado = cliente_nome
             # Agrupa os itens utilizados nas manutenções do cliente selecionado
             itens_utilizados = ItemManutencao.objects.filter(
-                manutencao__nome_cliente=cliente_nome
+                manutencao_nome_cliente=cliente_nome
             ).values(
-                'item__descricao'
+                'item_descricao'
             ).annotate(
                 total=Sum('quantidade_utilizada')
             ).order_by('-total')
             
             dados_grafico = {
-                'labels': [item['item__descricao'] for item in itens_utilizados],
+                'labels': [item['item_descricao'] for item in itens_utilizados],
                 'data': [item['total'] for item in itens_utilizados]
             }
             dados_grafico = json.dumps(dados_grafico)
