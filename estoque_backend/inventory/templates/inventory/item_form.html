@@ -1,0 +1,105 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Editar Item{% else %}Adicionar Item{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg" style="width: 100%; max-width: 600px;">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title text-center mb-0">{% if form.instance.pk %}Editar Item{% else %}Adicionar Item{% endif %}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                
+                <!-- Campos do formulário -->
+                <div class="mb-3">
+                    <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição:</label>
+                    <input type="text" name="{{ form.descricao.name }}" id="{{ form.descricao.id_for_label }}" 
+                           class="form-control form-control-lg" value="{{ form.descricao.value|default_if_none:'' }}" 
+                           placeholder="Digite a descrição do item">
+                    {% if form.descricao.errors %}
+                        <div class="text-danger">{{ form.descricao.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.quantidade.id_for_label }}" class="form-label">Quantidade:</label>
+                    <input type="number" name="{{ form.quantidade.name }}" id="{{ form.quantidade.id_for_label }}" 
+                           class="form-control form-control-lg" value="{{ form.quantidade.value|default_if_none:'' }}" 
+                           placeholder="Digite a quantidade">
+                    {% if form.quantidade.errors %}
+                        <div class="text-danger">{{ form.quantidade.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo:</label>
+                    <select name="{{ form.tipo.name }}" id="{{ form.tipo.id_for_label }}" 
+                            class="form-select form-select-lg">
+                        {% for value, label in form.tipo.field.choices %}
+                            <option value="{{ value }}" {% if form.tipo.value == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.tipo.errors %}
+                        <div class="text-danger">{{ form.tipo.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.estoque_minimo.id_for_label }}" class="form-label">Estoque Mínimo:</label>
+                    <input type="number" name="{{ form.estoque_minimo.name }}" id="{{ form.estoque_minimo.id_for_label }}" 
+                           class="form-control form-control-lg" value="{{ form.estoque_minimo.value|default_if_none:'' }}" 
+                           placeholder="Digite o estoque mínimo">
+                    {% if form.estoque_minimo.errors %}
+                        <div class="text-danger">{{ form.estoque_minimo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Botões centralizados -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-save"></i> Salvar
+                    </button>
+                    <a href="{% url 'item_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos personalizados -->
+<style>
+    .card {
+        border: none;
+    }
+    .card-header {
+        font-size: 1.5rem;
+        padding: 1rem;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .form-control-lg, .form-select-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #5a6268;
+    }
+</style>
+{% endblock %}
