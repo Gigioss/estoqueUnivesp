@@ -1,9 +1,81 @@
-{% extends "inventory/base.html" %}
-
-{% block title %}Relatórios de Estoque{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center">Relatórios</h2>
+    <h2>Relatório de Itens Utilizados por Cliente</h2>
+    
+    <form method="POST" class="mb-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <label for="cliente" class="form-label">Selecione o Cliente:</label>
+                <select name="cliente" id="cliente" class="form-select">
+                    <option value="">-- Todos os Clientes --</option>
+                    {% for cliente in clientes %}
+                    <option value="{{ cliente }}" {% if cliente_selecionado and cliente_selecionado == cliente %}selected{% endif %}>
+                        {{ cliente }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    {% if cliente_selecionado %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Itens utilizados em manutenções para {{ cliente_selecionado }}</h5>
+            <canvas id="graficoItens" height="300"></canvas>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dadosGrafico = JSON.parse('{{ dados_grafico|escapejs }}');
+        
+        if (dadosGrafico && dadosGrafico.labels && dadosGrafico.labels.length > 0) {
+            const ctx = document.getElementById('graficoItens').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dadosGrafico.labels,
+                    datasets: [{
+                        label: 'Quantidade Utilizada',
+                        data: dadosGrafico.data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade Utilizada'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Itens'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
