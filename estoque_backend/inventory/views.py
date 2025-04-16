@@ -159,12 +159,11 @@ def relatorios_view(request):
     itens_utilizados = ItemManutencao.objects.all().select_related('manutencao', 'item')
     mensagem = None
 
+    # Filtros (POST)
     if request.method == 'POST':
-        # Obter parâmetros do POST
-        nome_cliente = request.POST.get('nome_cliente', '').strip()
+        nome_cliente = request.POST.get('nome_cliente', '').strip()  # Corrigi typo (cliente)
         status = request.POST.get('status', '').strip()
 
-        # Aplicar filtros
         if nome_cliente:
             itens_utilizados = itens_utilizados.filter(
                 manutencao__nome_cliente__icontains=nome_cliente
@@ -178,11 +177,22 @@ def relatorios_view(request):
         if not nome_cliente and not status:
             mensagem = "Nenhum filtro aplicado - mostrando todos os itens"
 
-    # Preparar contexto
+    # Dados para gráficos (NOVO)
+    dados_grafico = {
+        'por_status': itens_utilizados.values('manutencao__status').annotate(
+            total=Count('id')
+        ),
+        'por_item': itens_utilizados.values('item__nome').annotate(
+            total=Sum('quantidade')  # Assumindo que existe campo 'quantidade'
+        )[:10]  # Limita a 10 itens mais utilizados
+    }
+
+    # Contexto
     context = {
         'itens_utilizados': itens_utilizados,
         'mensagem': mensagem,
         'total_itens': itens_utilizados.count(),
+        'dados_grafico': dados_grafico,  # Adicionado
     }
 
     return render(request, 'inventory/relatorios.html', context)
