@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
-from sympy import Sum
+from django.db.models import Count, Sum
 from .models import Item, ItemManutencao, Manutencao
 from .forms import ItemForm, ManutencaoForm, ItemManutencaoFormSet
 
