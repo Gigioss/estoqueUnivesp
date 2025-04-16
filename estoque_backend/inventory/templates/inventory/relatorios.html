@@ -32,6 +32,18 @@
             <canvas id="graficoItens" height="300"></canvas>
         </div>
     </div>
+
+    <!-- Adicione isto após a tabela existente -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4>Itens por Status</h4>
+            <canvas id="graficoStatus"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h4>Top 10 Itens Mais Utilizados</h4>
+            <canvas id="graficoItens"></canvas>
+        </div>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
@@ -78,4 +90,46 @@
         }
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de Status
+    new Chart(
+        document.getElementById('graficoStatus'),
+        {
+            type: 'pie',
+            data: {
+                labels: {{ dados_grafico.por_status|safe|escapejs }}.map(item => item.manutencao__status),
+                datasets: [{
+                    data: {{ dados_grafico.por_status|safe|escapejs }}.map(item => item.total),
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                    ]
+                }]
+            }
+        }
+    );
+
+    // Gráfico de Itens
+    new Chart(
+        document.getElementById('graficoItens'),
+        {
+            type: 'bar',
+            data: {
+                labels: {{ dados_grafico.por_item|safe|escapejs }}.map(item => item.item__nome),
+                datasets: [{
+                    label: 'Quantidade Utilizada',
+                    data: {{ dados_grafico.por_item|safe|escapejs }}.map(item => item.total),
+                    backgroundColor: '#36A2EB'
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        }
+    );
+</script>
+
+
 {% endblock %}
