@@ -182,7 +182,7 @@ def relatorios_view(request):
         'por_status': itens_utilizados.values('manutencao__status').annotate(
             total=Count('id')
         ),
-        'por_item': itens_utilizados.values('item__nome').annotate(
+        'por_item': itens_utilizados.values('item__descricao').annotate(
             total=Sum('quantidade')  # Assumindo que existe campo 'quantidade'
         )[:10]  # Limita a 10 itens mais utilizados
     }
