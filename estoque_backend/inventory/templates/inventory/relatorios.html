@@ -125,26 +125,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     type: 'bar',
                     data: {
                         labels: dados.por_item.map(item => {
-                            return item.item__nome || 'Item não nomeado';
+                            return item.item__descricao || 'Item sem descrição';
                         }),
                         datasets: [{
                             label: 'Quantidade Utilizada',
                             data: dados.por_item.map(item => item.total),
-                            backgroundColor: '#36A2EB',
-                            borderColor: '#1E88E5',
-                            borderWidth: 1
+                            backgroundColor: '#36A2EB'
                         }]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0
-                                }
-                            }
+                            y: { beginAtZero: true }
                         }
                     }
                 }
