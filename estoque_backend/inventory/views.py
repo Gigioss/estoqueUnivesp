@@ -191,11 +191,24 @@ def relatorios_view(request):
         )
     }
 
+    # Dados para gráficos - CORRIGIDO para usar 'item__descricao'
+    dados_grafico = {
+        'por_status': list(
+            itens_utilizados.values('manutencao__status')
+            .annotate(total=Count('id'))
+            .order_by('-total')
+        ),
+        'por_item': list(
+            itens_utilizados.values('item__descricao')  # Alterado para descricao
+            .annotate(total=Sum('quantidade_utilizada'))
+            .order_by('-total')[:10]
+        )
+    }
+
     context = {
         'itens_utilizados': itens_utilizados,
         'mensagem': mensagem,
         'total_itens': itens_utilizados.count(),
         'dados_grafico_json': json.dumps(dados_grafico),
     }
-
     return render(request, 'inventory/relatorios.html', context)
