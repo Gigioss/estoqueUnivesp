@@ -188,6 +188,7 @@ def relatorios_view(request):
             itens_utilizados.values('item__nome')
             .annotate(total=Sum('quantidade_utilizada'))
             .order_by('-total')[:10]  # Top 10 itens
+        )
     }
 
     context = {
