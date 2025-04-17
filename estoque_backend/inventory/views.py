@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
 from django.db.models import Count, Sum
+from django.http import JsonResponse
 from .models import Item, ItemManutencao, Manutencao
 from .forms import ItemForm, ManutencaoForm, ItemManutencaoFormSet
 
@@ -155,13 +156,12 @@ def manutencao_delete(request, pk):
 
 @transaction.atomic
 def relatorios_view(request):
-    # Inicializa variáveis
+    # Filtros básicos
     itens_utilizados = ItemManutencao.objects.all().select_related('manutencao', 'item')
     mensagem = None
 
-    # Filtros (POST)
     if request.method == 'POST':
-        nome_cliente = request.POST.get('nome_cliente', '').strip()  # Corrigi typo (cliente)
+        nome_cliente = request.POST.get('nome_cliente', '').strip()
         status = request.POST.get('status', '').strip()
 
         if nome_cliente:
@@ -177,22 +177,24 @@ def relatorios_view(request):
         if not nome_cliente and not status:
             mensagem = "Nenhum filtro aplicado - mostrando todos os itens"
 
-    # Dados para gráficos (NOVO)
+    # Preparação dos dados para gráficos
     dados_grafico = {
-        'por_status': itens_utilizados.values('manutencao__status').annotate(
-            total=Count('id')
+        'por_status': list(
+            itens_utilizados.values('manutencao__status')
+            .annotate(total=Count('id'))
+            .order_by('-total')
         ),
-        'por_item': itens_utilizados.values('item__descricao').annotate(
-            total=Sum('quantidade_utilizada')  # Assumindo que existe campo 'quantidade'
-        )[:10]  # Limita a 10 itens mais utilizados
+        'por_item': list(
+            itens_utilizados.values('item__nome')
+            .annotate(total=Sum('quantidade_utilizada'))
+            .order_by('-total')[:10]  # Top 10 itens
     }
 
-    # Contexto
     context = {
         'itens_utilizados': itens_utilizados,
         'mensagem': mensagem,
         'total_itens': itens_utilizados.count(),
-        'dados_grafico': dados_grafico,  # Adicionado
+        'dados_grafico_json': json.dumps(dados_grafico),
     }
 
     return render(request, 'inventory/relatorios.html', context)
