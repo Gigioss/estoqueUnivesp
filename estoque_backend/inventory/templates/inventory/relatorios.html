@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     type: 'bar',
                     data: {
                         labels: dados.por_item.map(item => {
-                            return item.item__nome || 'Sem nome';
+                            return item.item__nome || 'Item não nomeado';
                         }),
                         datasets: [{
                             label: 'Quantidade Utilizada',
