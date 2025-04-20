@@ -1,15 +1,26 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum,Q
 from django.http import JsonResponse
 from .models import Item, ItemManutencao, Manutencao
 from .forms import ItemForm, ManutencaoForm, ItemManutencaoFormSet
 
 def item_list(request):
-    items = Item.objects.all()
-    print("Tentando carregar o template:", 'inventory/item_list.html')  # Debug
-    return render(request, 'inventory/item_list.html', {'items': items})
+    query = request.GET.get('q', '')
+    items = Item.objects.all().order_by('id')
+    
+    if query:
+        items = items.filter(
+            Q(descricao__icontains=query) |
+            Q(tipo__icontains=query) |
+            Q(id__icontains=query)
+        )
+    
+    return render(request, 'inventory/item_list.html', {
+        'items': items,
+        'search_query': query  # Adicionei isso para manter o termo de busca no template
+    })
 
 def item_add(request):
     if request.method == 'POST':
@@ -40,8 +51,21 @@ def item_delete(request, pk):
     return render(request, 'inventory/item_confirm_delete.html', {'item': item})
 
 def manutencao_list(request):
-    manutencoes = Manutencao.objects.all()
-    return render(request, 'inventory/manutencao_list.html', {'manutencoes': manutencoes})
+    query = request.GET.get('q', '')
+    manutencoes = Manutencao.objects.all().order_by('-data_criacao')  # Ordena por data mais recente
+    
+    if query:
+        manutencoes = manutencoes.filter(
+            Q(nome_cliente__icontains=query) |
+            Q(status__icontains=query) |
+            Q(id__icontains=query)
+            # Removi a busca por 'equipamento' que não existe no modelo
+        )
+    
+    return render(request, 'inventory/manutencao_list.html', {
+        'manutencoes': manutencoes,
+        'search_query': query
+    })
 
 def manutencao_add(request):
     if request.method == 'POST':
@@ -89,46 +113,37 @@ def manutencao_edit(request, pk):
         formset = ItemManutencaoFormSet(request.POST, instance=manutencao)
         
         if form.is_valid() and formset.is_valid():
-            # Primeiro salva a manutenção
+            # 1. Primeiro devolve os itens ao estoque
+            for item_manutencao in manutencao.itens_utilizados.all():
+                item = item_manutencao.item
+                item.quantidade += item_manutencao.quantidade_utilizada
+                item.save()
+            
+            # 2. Salva a manutenção (sem itens ainda)
             manutencao = form.save()
             
-            # Dicionário para armazenar as quantidades originais
-            quantidades_originais = {
-                item.item.pk: item.quantidade_utilizada 
-                for item in manutencao.itens_utilizados.all()
-            }
+            # 3. Processa os itens do formset
+            for item_form in formset:
+                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
+                    item = item_form.cleaned_data.get('item')
+                    quantidade = item_form.cleaned_data.get('quantidade_utilizada')
+                    
+                    if item and quantidade:
+                        # Verifica estoque
+                        if item.quantidade >= quantidade:
+                            item.quantidade -= quantidade
+                            item.save()
+                        else:
+                            # Se não tiver estoque, devolve tudo e mostra erro
+                            form.add_error(None, f"Estoque insuficiente para {item.descricao}")
+                            return render(request, 'inventory/manutencao_form.html', {
+                                'form': form,
+                                'formset': formset
+                            })
             
-            try:
-                # Processa cada item do formset
-                for item_form in formset:
-                    if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE', False):
-                        item = item_form.cleaned_data.get('item')
-                        nova_quantidade = item_form.cleaned_data.get('quantidade_utilizada')
-                        
-                        if item and nova_quantidade:
-                            # Calcula a diferença em relação à quantidade original
-                            quantidade_original = quantidades_originais.get(item.pk, 0)
-                            diferenca = nova_quantidade - quantidade_original
-                            
-                            # Verifica estoque
-                            if item.quantidade >= diferenca:
-                                item.quantidade -= diferenca
-                                item.save()
-                            else:
-                                form.add_error(None, f"Não há estoque suficiente para o item {item.descricao}")
-                                return render(request, 'inventory/manutencao_form.html', {
-                                    'form': form,
-                                    'formset': formset
-                                })
-                
-                # Salva o formset após todas as validações
-                formset.save()
-                return redirect('manutencao_list')
-                
-            except Exception as e:
-                # Em caso de erro, faz rollback da transação
-                transaction.set_rollback(True)
-                form.add_error(None, f"Ocorreu um erro: {str(e)}")
+            # 4. Salva o formset depois de todas as validações
+            formset.save()
+            return redirect('manutencao_list')
     
     else:
         form = ManutencaoForm(instance=manutencao)
@@ -136,9 +151,10 @@ def manutencao_edit(request, pk):
     
     return render(request, 'inventory/manutencao_form.html', {
         'form': form,
-        'formset': formset
+        'formset': formset,
+        'manutencao': manutencao
     })
-
+    
 @transaction.atomic
 def manutencao_delete(request, pk):
     manutencao = get_object_or_404(Manutencao, pk=pk)
