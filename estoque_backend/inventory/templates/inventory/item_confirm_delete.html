@@ -1,17 +1,42 @@
 {% extends 'inventory/base.html' %}
 
-{% block title %}Excluir Item{% endblock %}
+{% block title %}Confirmar Exclusão de Item{% endblock %}
 
 {% block content %}
-<h1>Excluir Item</h1>
-<p>Você tem certeza que deseja excluir o item "{{ item.descricao }}"?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">
-        <i class="bi bi-trash"></i> Confirmar Exclusão
-    </button>
-    <a href="{% url 'item_list' %}" class="btn btn-secondary">
-        <i class="bi bi-x-circle"></i> Cancelar
-    </a>
-</form>
+<div class="container mt-4">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h2><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão</h2>
+        </div>
+        <div class="card-body">
+            <h4 class="card-title">Você está prestes a excluir o item:</h4>
+            <p class="lead font-weight-bold">"{{ item.descricao }}"</p>
+            <p class="text-muted">
+                <strong>Código:</strong> {{ item.id }}<br>
+                <strong>Quantidade:</strong> {{ item.quantidade }}<br>
+            </p>
+            
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-octagon-fill"></i> Atenção! Esta ação é irreversível e afetará:
+                <ul class="mt-2">
+                    <li>Todas as manutenções que utilizam este item</li>
+                    <li>O histórico de movimentações do estoque</li>
+                    <li>Os relatórios de inventário</li>
+                </ul>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'item_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash-fill"></i> Confirmar Exclusão
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
