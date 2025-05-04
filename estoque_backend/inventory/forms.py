@@ -7,6 +7,18 @@ class ItemForm(forms.ModelForm):
         model = Item
         fields = ['descricao', 'quantidade', 'tipo', 'estoque_minimo']
 
+    def clean_quantidade(self):
+        quantidade = self.cleaned_data.get('quantidade')
+        if quantidade is not None and quantidade < 0:
+            raise forms.ValidationError("A quantidade em estoque não pode ser negativa.")
+        return quantidade
+
+    def clean_estoque_minimo(self):
+        estoque_minimo = self.cleaned_data.get('estoque_minimo')
+        if estoque_minimo is not None and estoque_minimo < 0:
+            raise forms.ValidationError("O estoque mínimo não pode ser negativo.")
+        return estoque_minimo
+
 class ManutencaoForm(forms.ModelForm):
     class Meta:
         model = Manutencao
@@ -31,9 +43,9 @@ class ItemManutencaoForm(forms.ModelForm):
 
 # Cria o formset para os itens utilizados
 ItemManutencaoFormSet = inlineformset_factory(
-    Manutencao,  # Modelo principal
-    ItemManutencao,  # Modelo relacionado
-    form=ItemManutencaoForm,  # Formulário do modelo relacionado
-    extra=1,  # Número de formulários extras exibidos
-    can_delete=True  # Permite excluir itens
+    Manutencao,
+    ItemManutencao,
+    form=ItemManutencaoForm,
+    extra=1,
+    can_delete=True
 )
