@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'estoque_backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://estoqueunivesp_user:VDHJJ3Bky3xzOJWhLaahpbdt5ZX8n8d9@dpg-cvt5k19r0fns73e0quo0-a.oregon-postgres.render.com/estoqueunivesp',
+        default='postgresql://estoqueunivesp_7mo7_user:gRkzLnqzwlx8H0HCjQFGfeYYVmoGyQUq@dpg-d0j7eiumcj7s73fn1og0-a.oregon-postgres.render.com/estoqueunivesp_7mo7',
         conn_max_age=600,
         conn_health_checks=True,
     )
